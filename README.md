@@ -1,6 +1,6 @@
 # E-Commerce Payment Gateway:
 
-This is a virtual internship project for an organisation in West Bengal. The goal was to build an e-commerce website to help the NGO sell their products online. Our team was responsible for creating a secure and functional **payment gateway** using **Razorpay** with **MongoDB** as the backend. The payment gateway supports **cards, netbanking, wallets, and paylater options**. Currently, it is running in **test mode** for dummy transactions.
+This is a virtual internship project for an Samskruta Vahini Foundation based in West Bengal. The goal was to build an e-commerce website to help the NGO sell their products online. Our team was responsible for creating a secure and functional **payment gateway** using **Razorpay** with **MongoDB** as the backend. The payment gateway supports **cards, netbanking, wallets, and paylater options**. Currently, it is running in **test mode** for dummy transactions.
 
 We even uploaded a video demo showcasing how the payment gateway works.
 
