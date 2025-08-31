@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Thank You</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f7ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+    }
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+    h2 {
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+    p {
+      margin: 10px 0;
+    }
+    a {
+      margin-top: 20px;
+      display: inline-block;
+      text-decoration: none;
+      color: #007bff;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>✅ Payment Successful!</h2>
+    <p><strong>Order ID:</strong> <span id="orderId">Loading...</span></p>
+    <p><strong>Payment ID:</strong> <span id="paymentId">Loading...</span></p>
+    <a href="index.html">🔁 Make Another Payment</a><br />
+    <a href="history.html">📜 View Payment History</a>
+  </div>
+
+  <script>
+    // Get query params from URL
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order_id");
+    const paymentId = params.get("payment_id");
+
+    document.getElementById("orderId").textContent = orderId || "Not available";
+    document.getElementById("paymentId").textContent = paymentId || "Not available";
+  </script>
+</body>
+</html>

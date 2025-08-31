@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Gateway</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 40px;
+      background-color: #f0f0f0;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Checkout</h2>
+    <label>Cart Total (INR):</label>
+    <input type="number" id="amount" placeholder="Enter amount" />
+
+    <label>Payment Method:</label>
+    <select id="method">
+      <option value="Razorpay">Razorpay</option>
+      <option value="UPI">UPI</option>
+      <option value="Card">Credit/Debit Card</option>
+    </select>
+
+    <button onclick="payNow()">Pay Now</button>
+  </div>
+
+  <script>
+    // Fetch Razorpay API Key securely from the backend
+    async function getRazorpayKey() {
+      try {
+        const response = await fetch("http://localhost:5000/get-razorpay-key");
+        
+        if (!response.ok) {
+          console.error('Failed to fetch Razorpay key:', response.statusText);
+          alert('Failed to fetch Razorpay key from the backend. Please check the server.');
+          return null;
+        }
+        
+        const data = await response.json();
+        
+        if (!data.key) {
+          console.error('Razorpay key not found in the response:', data);
+          alert('Razorpay key not found.');
+          return null;
+        }
+        
+        return data.key; // Return the Razorpay key
+      } catch (error) {
+        console.error('Error fetching Razorpay key:', error);
+        alert('Error fetching Razorpay key, please try again.');
+        return null;
+      }
+    }
+
+    async function payNow() {
+      const amountInput = document.getElementById("amount").value;
+      const method = document.getElementById("method").value;
+
+      // Validate input: Ensure amount is a positive number
+      if (!amountInput || amountInput <= 0) {
+        alert("Please enter a valid amount greater than zero.");
+        return;
+      }
+
+      if (!method) {
+        alert("Please select a payment method.");
+        return;
+      }
+
+      const amount = parseInt(amountInput) * 100; // Convert amount to paise
+
+      try {
+        // Make a request to create an order
+        const orderRes = await fetch("http://localhost:5000/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount })
+        });
+
+        const orderData = await orderRes.json();
+
+        if (orderData.error) {
+          alert("Order creation failed. Please try again.");
+          return;
+        }
+
+        const razorpayKey = await getRazorpayKey(); // Fetch Razorpay key securely from backend
+
+        if (!razorpayKey) {
+          alert("Failed to load Razorpay key.");
+          return;
+        }
+
+        // Set Razorpay checkout options
+        const options = {
+          key: razorpayKey, // Dynamically set the Razorpay key
+          amount: amount,
+          currency: "INR",
+          name: "My Shop",
+          description: "Test Transaction",
+          order_id: orderData.orderId,
+          handler: async function (response) {
+            // After payment, verify the payment
+            const verifyRes = await fetch("http://localhost:5000/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: amount,
+                method: method
+              })
+            });
+
+            const data = await verifyRes.json();
+            if (data.success) {
+              // Redirect to 'thankyou.html' with orderId and paymentId as query params
+              window.location.href = `thankyou.html?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}`;
+            } else {
+              alert("Payment verification failed");
+            }
+          },
+          prefill: {
+            name: "Test User",
+            email: "test@example.com",
+            contact: "9999999999"
+          },
+          theme: {
+            color: "#3399cc"
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+      }
+    }
+  </script>
+</body>
+</html>
